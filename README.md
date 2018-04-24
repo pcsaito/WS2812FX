@@ -3,66 +3,20 @@
 WS2812FX - More Blinken for your LEDs!
 ======================================
 
-This library features a variety of blinken effects for the WS2811/WS2812/NeoPixel LEDs. It is meant to be a drop-in replacement for the Adafruit NeoPixel library with additional features.
+This library features a variety of blinken effects for the WS2811/WS2812/NeoPixel LEDs.
+It uses ws2812_i2s extra library from esp-open-rtos to output to the leds.
+
+NOTE:
+   1) the ws2812_i2s library uses hardware I2S so output pin is GPIO3 and cannot be changed.
+   2) on some ESP8266 such as the Wemos D1 mini, GPIO3 is the same pin used for serial RX.
 
 Features
 --------
 
 * 53 different effects. And counting.
 * Free of any delay()
-* Tested on Arduino Nano, Uno, Micro and ESP8266.
-* All effects with printable names - easy to use in user interfaces.
+* Tested on ESP8266.
 * FX, speed and brightness controllable on the fly.
-* Ready for sound-to-light (see external trigger example)
-
-
-Download, Install and Example
------------------------------
-
-* Install the famous [Adafruit NeoPixel library](https://github.com/adafruit/Adafruit_NeoPixel)
-* Download this repository.
-* Extract to your Arduino libraries directory.
-* Open Arduino IDE.
-* Now you can choose File > Examples > WS2812FX > ...
-
-See examples for basic usage.
-
-In it's most simple form, here's the code to get you started!
-
-```cpp
-#include <WS2812FX.h>
-
-#define LED_COUNT 30
-#define LED_PIN 12
-
-WS2812FX ws2812fx = WS2812FX(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
-
-void setup() {
-  ws2812fx.init();
-  ws2812fx.setBrightness(100);
-  ws2812fx.setSpeed(200);
-  ws2812fx.setMode(FX_MODE_RAINBOW_CYCLE);
-  ws2812fx.start();
-}
-
-void loop() {
-  ws2812fx.service();
-}
-```
-
-More complex effects can be created by dividing your string of LEDs into segments (up to ten) and programming each segment independently. Use the **setSegment()** function to program each segment's mode, color, speed and direction (normal or reverse):
-  * setSegment(segment index, start LED, stop LED, mode, color, speed, reverse);
-
-Note, some effects make use of more then one color (up to three) and are programmed by specifying an array of colors:
-  * setSegment(segment index, start LED, stop LED, mode, colors[], speed, reverse);
-
-```cpp
-// divide the string of LEDs into two independent segments
-uint32_t colors[] = {RED, GREEN};
-ws2812fx.setSegment(0, 0,           (LED_COUNT/2)-1, FX_MODE_BLINK, colors, 1000, false);
-ws2812fx.setSegment(1, LED_COUNT/2, LED_COUNT-1,     FX_MODE_BLINK, (const uint32_t[]) {ORANGE, PURPLE}, 1000, false);
-```
-
 
 Effects
 -------
@@ -125,7 +79,11 @@ Effects
 * **ICU** - Two eyes looking around.
 * **Custom** - User created custom effect.
 
-Projects using WS2812FX
+Projects using WS2812FX-rtos
+-----------------------
+* [esp-homekit-demo](https://github.com/pcsaito/esp-homekit-demo) led_strip_animation example using a standalone ESP8266. Control your strip with Apple HomeKit!
+
+Projects using the original WS2812FX
 -----------------------
 
 * [Smart Home project by renat2985](https://github.com/renat2985/rgb) using the ESP8266. Including a nice webinterface in the demo video!
