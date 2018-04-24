@@ -46,6 +46,10 @@ CHANGELOG
 
 #include "WS2812FX.h"
 #include <math.h>
+#include <stdlib.h>
+
+#include "FreeRTOS.h"
+#include "task.h"
 
 #define CALL_MODE(n) _mode[n]();
 
@@ -72,7 +76,7 @@ mode _mode[MODE_COUNT];
 ws2812_pixel_t *pixels;
 
 //Helpers
-uint32_t pixel32(uint8_t r, uint8_t g, uint8_t b) {
+uint32_t color32(uint8_t r, uint8_t g, uint8_t b) {
 	return ((uint32_t)r << 16) | ((uint32_t)g <<  8) | b;
 }
 
@@ -86,17 +90,23 @@ uint32_t randomInRange(uint32_t min, uint32_t max) {
 		return randomValue + min;
 	} else if (min == max) {
 		return min;
-	} else if (min > max) {
-		return 0;
 	}
+	return 0;
 }
 
-long map(long x, long in_min, long in_max, long out_min, long out_max)
-{
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-//Adapters
+static uint16_t min(uint16_t a, uint16_t b) {
+    return (a > b) ? b : a;
+}
+
+static uint32_t max(uint32_t a, uint32_t b) {
+    return (a > b) ? a : b;
+}
+
+//LED Adapter
 void WS2812_show(void) {
 	ws2812_i2s_update(pixels, PIXEL_RGB);
 }
@@ -119,7 +129,7 @@ void WS2812_setPixelColor32(uint16_t n, uint32_t c) {
 }
 
 uint32_t WS2812_getPixelColor(uint16_t n) {
-	return pixel32(pixels[n].red, pixels[n].green, pixels[n].blue);
+	return color32(pixels[n].red, pixels[n].green, pixels[n].blue);
 }
 
 void WS2812_clear() {
@@ -142,7 +152,7 @@ void WS2812_init(uint16_t pixel_count) {
 	WS2812_clear();
 }
 
-//Lib
+//WS2812FX
 void WS2812FX_init(uint16_t pixel_count) {
 	WS2812_init(pixel_count);
 	xTaskCreate(WS2812FX_service, "fxService", 200, NULL, 2, NULL);
@@ -529,7 +539,7 @@ void WS2812FX_mode_rainbow(void) {
 
 	_counter_mode_step = (_counter_mode_step + 1) % 256;
 
-	_mode_delay = 1 + ((50 * (uint32_t)(SPEED_MAX - _speed)) / SPEED_MAX);
+	_mode_delay = 1 + ((100 * (uint32_t)(SPEED_MAX - _speed)) / SPEED_MAX);
 }
 
 
