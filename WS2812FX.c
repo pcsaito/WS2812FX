@@ -58,6 +58,7 @@ uint8_t _speed = DEFAULT_SPEED;
 uint8_t _brightness = 0;
 uint8_t _target_brightness = 0;
 bool _running = false;
+bool _inverted = false;
 
 uint16_t _led_count = 0;
 
@@ -112,6 +113,10 @@ void WS2812_show(void) {
 }
 
 void WS2812_setPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b) {
+	if (_inverted) { 
+		n = (_led_count - 1) - n; 
+	}
+	
 	ws2812_pixel_t px;
 	px.red = map(r, 0, BRIGHTNESS_MAX, BRIGHTNESS_MIN, _brightness);
 	px.green = map(g, 0, BRIGHTNESS_MAX, BRIGHTNESS_MIN, _brightness);
@@ -263,6 +268,10 @@ uint8_t WS2812FX_getModeCount(void) {
 
 uint32_t WS2812FX_getColor(void) {
 	return _color;
+}
+
+void WS2812FX_setInverted(bool inverted) {
+	_inverted = inverted;
 }
 
 /* #####################################################
