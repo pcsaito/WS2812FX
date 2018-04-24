@@ -125,7 +125,7 @@ void
 	WS2812FX_setSpeed(uint8_t s),
 	WS2812FX_setColor(uint8_t r, uint8_t g, uint8_t b),
 	WS2812FX_setColor32(uint32_t c),
-	WS2812FX_setBrightness(uint8_t b);
+	WS2812FX_setBrightness(uint8_t b),
 	WS2812FX_setInverted(bool inverted);
 
 bool
