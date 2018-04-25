@@ -149,7 +149,7 @@ void WS2812_init(uint16_t pixel_count) {
     pixels = (ws2812_pixel_t*) malloc(_led_count * sizeof(ws2812_pixel_t));
 	
 	// initialise the onboard led as a secondary indicator (handy for testing)
-	gpio_enable(LED_INBUILT_GPIO, GPIO_OUTPUT);
+	// gpio_enable(LED_INBUILT_GPIO, GPIO_OUTPUT);
 
 	// initialise the LED strip
 	ws2812_i2s_init(_led_count, PIXEL_RGB);

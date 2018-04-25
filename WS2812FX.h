@@ -42,7 +42,7 @@ CHANGELOG
 
 #include "ws2812_i2s/ws2812_i2s.h"
 
-#define LED_INBUILT_GPIO 2      // this is the onboard LED used to show on/off only
+//#define LED_INBUILT_GPIO 2      // this is the onboard LED used to show on/off only
 
 #define DEFAULT_MODE 9
 #define DEFAULT_SPEED 1
