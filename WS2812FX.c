@@ -59,6 +59,7 @@ uint8_t _brightness = 0;
 uint8_t _target_brightness = 0;
 bool _running = false;
 bool _inverted = false;
+bool _slow_start = true;
 
 uint16_t _led_count = 0;
 
@@ -82,6 +83,10 @@ uint32_t color32(uint8_t r, uint8_t g, uint8_t b) {
 }
 
 uint32_t constrain(uint32_t amt, uint32_t low, uint32_t high) {
+	return (amt < low) ? low : ((amt > high) ? high : amt);
+}
+
+float fconstrain(float amt, float low, float high) {
 	return (amt < low) ? low : ((amt > high) ? high : amt);
 }
 
@@ -160,7 +165,7 @@ void WS2812_init(uint16_t pixel_count) {
 //WS2812FX
 void WS2812FX_init(uint16_t pixel_count) {
 	WS2812_init(pixel_count);
-	xTaskCreate(WS2812FX_service, "fxService", 200, NULL, 2, NULL);
+	xTaskCreate(WS2812FX_service, "fxService", 255, NULL, 2, NULL);
 	WS2812FX_initModes();
 	WS2812FX_start();
 }
@@ -172,11 +177,18 @@ void WS2812FX_service(void *_args) {
 		if(_running) {
 			//printf("_brightness : _target_brightness %ld : %ld \n", _brightness, _target_brightness);
 			
-			if ((_brightness < 15) && (_brightness < _target_brightness)) {
-				_brightness++;
-			} else {
-				_brightness = (BRIGHTNESS_FILTER * _brightness) + ((1.0-BRIGHTNESS_FILTER) * _target_brightness);
-			}
+            if (_slow_start) {
+			    if ((_brightness < _target_brightness)) {
+                    uint8_t new_brightness = (BRIGHTNESS_FILTER * _brightness) + ((1.0-BRIGHTNESS_FILTER) * _target_brightness);
+                    float soft_start = fconstrain((float)(_brightness * 4) / (float)BRIGHTNESS_MAX, 0.1, 1.0);
+                    uint8_t delta = (new_brightness - _brightness) * soft_start;
+	                _brightness = _brightness + constrain(delta, 1, delta);
+	            } else {
+	                _brightness = (BRIGHTNESS_FILTER * _brightness) + ((1.0-BRIGHTNESS_FILTER) * _target_brightness);
+	            }
+            } else {
+                _brightness = _target_brightness;
+            }
 		
 			now = xTaskGetTickCount() * portTICK_PERIOD_MS;
 			if(now - _mode_last_call_time > _mode_delay) {
@@ -272,6 +284,10 @@ uint32_t WS2812FX_getColor(void) {
 
 void WS2812FX_setInverted(bool inverted) {
 	_inverted = inverted;
+}
+
+void WS2812FX_setSlowStart(bool slow_start) {
+	_slow_start = slow_start;
 }
 
 /* #####################################################
