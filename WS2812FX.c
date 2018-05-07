@@ -59,7 +59,7 @@ uint8_t _brightness = 0;
 uint8_t _target_brightness = 0;
 bool _running = false;
 bool _inverted = false;
-bool _slow_start = true;
+bool _slow_start = false;
 
 uint16_t _led_count = 0;
 
