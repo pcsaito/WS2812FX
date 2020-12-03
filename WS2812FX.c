@@ -55,8 +55,8 @@ CHANGELOG
 
 uint8_t _mode_index = DEFAULT_MODE;
 uint8_t _speed = DEFAULT_SPEED;
-uint8_t _brightness = 0;
-uint8_t _target_brightness = 0;
+uint8_t _brightness = 0;				//brightness for current iteration
+uint8_t _target_brightness = 0;			//brightness set by user
 bool _running = false;
 bool _inverted = false;
 bool _slow_start = false;
@@ -247,11 +247,6 @@ void WS2812FX_setColor32(uint32_t c) {
 void WS2812FX_setBrightness(uint8_t b) {
 	_target_brightness = constrain(b, BRIGHTNESS_MIN, BRIGHTNESS_MAX);
 	//printf("WS2812FX_setBrightness: %ld \n", _target_brightness);
-}
-
-void WS2812FX_forceBrightness(uint8_t b) {
-	_target_brightness = constrain(b, BRIGHTNESS_MIN, BRIGHTNESS_MAX);
-	_brightness = _target_brightness;
 }
 
 bool WS2812FX_isRunning() {
@@ -480,11 +475,11 @@ void WS2812FX_mode_breath(void) {
 		_counter_mode_step = (_counter_mode_step + 1) % (sizeof(breath_brightness_steps)/sizeof(uint8_t));
 	}
 
+	int b = map(breath_brightness, 0, 255, 0, _target_brightness);  // keep brightness below brightness set by user
+	_brightness = b;                     // set new brightness to leds
 	for(uint16_t i=0; i < _led_count; i++) {
 		WS2812_setPixelColor32(i, _color);           // set all LEDs to selected color
 	}
-	int b = map(breath_brightness, 0, 255, 0, _brightness);  // keep brightness below brightness set by user
-	WS2812FX_forceBrightness(b);                     // set new brightness to leds
 	WS2812_show();
 
 	_mode_color = breath_brightness;                         // we use _mode_color to store the brightness
@@ -496,14 +491,14 @@ void WS2812FX_mode_breath(void) {
 * Fades the LEDs on and (almost) off again.
 */
 void WS2812FX_mode_fade(void) {
+	int b = _counter_mode_step - 127;
+	b = 255 - (abs(b) * 2);
+	b = map(b, 0, 255, min(25, _target_brightness), _target_brightness);
+	_brightness = b;
+
 	for(uint16_t i=0; i < _led_count; i++) {
 		WS2812_setPixelColor32(i, _color);
 	}
-
-	int b = _counter_mode_step - 127;
-	b = 255 - (abs(b) * 2);
-	b = map(b, 0, 255, min(25, _brightness), _brightness);
-	WS2812FX_forceBrightness(b);
 	WS2812_show();
 
 	_counter_mode_step = (_counter_mode_step + 1) % 256;
